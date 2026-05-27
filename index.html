@@ -17,22 +17,47 @@
     .layout {
       display: grid;
       grid-template-columns: 120px 79vw 120px;
-      grid-template-rows: 120px auto 120px;
+      grid-template-rows: 110px auto 110px;
       align-items: center;
       justify-items: center;
-      gap: 12px;
+      width: 100vw;
+      gap: 8px;
     }
-    .gif-top    { grid-column: 2; grid-row: 1; }
-    .gif-left   { grid-column: 1; grid-row: 2; }
-    .video-wrap { grid-column: 2; grid-row: 2; width: 79vw; aspect-ratio: 16/9; position: relative; }
-    .gif-right  { grid-column: 3; grid-row: 2; }
-    .gif-bottom { grid-column: 2; grid-row: 3; }
 
-    .layout img {
+    /* tiled rows */
+    .row-top, .row-bottom {
+      grid-column: 1 / -1;
+      width: 100%;
+      height: 110px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .row-top    { grid-row: 1; }
+    .row-bottom { grid-row: 3; }
+
+    .tile-bg {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-image: url('iltak-high-school-boy.gif');
+      background-repeat: repeat-x;
+      background-size: 110px 110px;
+    }
+
+    .gif-shake {
+      position: relative;
+      z-index: 2;
       width: 110px;
       height: 110px;
       object-fit: cover;
     }
+
+    .gif-left   { grid-column: 1; grid-row: 2; width: 110px; height: 110px; object-fit: cover; }
+    .video-wrap { grid-column: 2; grid-row: 2; width: 79vw; aspect-ratio: 16/9; position: relative; }
+    .gif-right  { grid-column: 3; grid-row: 2; width: 110px; height: 110px; object-fit: cover; }
 
     iframe {
       width: 100%;
@@ -53,8 +78,13 @@
 <body>
   <canvas id="fx"></canvas>
   <div class="layout">
-    <img class="gif-top"    id="gif-top"    src="iltak-high-school-boy.gif" alt="">
-    <img class="gif-left"   id="gif-left"   src="ghost-avenue-ghost-avenue-liln.gif" alt="">
+    <!-- fila arriba: tile de iltak + shake de iltak centrado -->
+    <div class="row-top" id="row-top">
+      <div class="tile-bg"></div>
+      <img class="gif-shake" id="gif-top" src="iltak-high-school-boy.gif" alt="">
+    </div>
+
+    <img class="gif-left"  id="gif-left"  src="ghost-avenue-ghost-avenue-liln.gif" alt="">
     <div class="video-wrap" id="wrap">
       <iframe
         src="https://www.youtube.com/embed/PysVvOp0jiU?autoplay=1&loop=1&playlist=PysVvOp0jiU&rel=0&modestbranding=1&controls=1"
@@ -62,8 +92,13 @@
         allowfullscreen>
       </iframe>
     </div>
-    <img class="gif-right"  id="gif-right"  src="rimuru-tempest-rimuru.gif" alt="">
-    <img class="gif-bottom" id="gif-bottom" src="subaru-natsuki-subaru.gif" alt="">
+    <img class="gif-right" id="gif-right" src="rimuru-tempest-rimuru.gif" alt="">
+
+    <!-- fila abajo: tile de iltak + shake de subaru centrado -->
+    <div class="row-bottom" id="row-bottom">
+      <div class="tile-bg"></div>
+      <img class="gif-shake" id="gif-bottom" src="subaru-natsuki-subaru.gif" alt="">
+    </div>
   </div>
 
   <script>
@@ -82,16 +117,11 @@
       canvas.height = window.innerHeight;
     });
 
-    // BPM simulado ~160 (canción intensa)
     const BPM = 160;
-    const beatInterval = 60000 / BPM; // ms per beat
-
-    let lastBeat = 0;
-    let beatPulse = 0; // 0-1, decays between beats
+    const beatInterval = 60000 / BPM;
 
     function getBeat(now) {
       const timeSinceBeat = (now % beatInterval) / beatInterval;
-      // Sharp attack, fast decay
       return Math.max(0, 1 - timeSinceBeat * 3.5);
     }
 
@@ -99,8 +129,6 @@
       requestAnimationFrame(draw);
 
       const beat = getBeat(now);
-      const fast = Math.sin(now / 60) * 0.5 + 0.5; // fast oscillator
-      const med  = Math.sin(now / 120) * 0.5 + 0.5;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -114,17 +142,16 @@
       ctx.shadowBlur = glow * 2;
       ctx.strokeRect(rect.left - glow/2, rect.top - glow/2, rect.width + glow, rect.height + glow);
 
-      // Extra inner border
       ctx.strokeStyle = `hsla(${(hue+180)%360}, 100%, 75%, ${beat * 0.5})`;
       ctx.lineWidth = 1 + beat * 4;
       ctx.shadowBlur = glow;
       ctx.strokeRect(rect.left + 4, rect.top + 4, rect.width - 8, rect.height - 8);
 
-      // Video shake on beat
+      // Video shake
       const shakeV = beat * 7;
       wrap.style.transform = `translate(${(Math.random()-0.5)*shakeV}px, ${(Math.random()-0.5)*shakeV}px)`;
 
-      // gif-top (iltak): shake caótico en beat
+      // gif-top (iltak): spin en beat
       const st = beat * 12;
       const spinTop = beat > 0.3 ? (now % 500) / 500 * 360 : 0;
       gifTop.style.transform = `translate(${(Math.random()-0.5)*st}px, ${(Math.random()-0.5)*st}px) rotate(${spinTop}deg)`;
@@ -133,11 +160,11 @@
       const sl = beat * 12;
       gifLeft.style.transform = `translate(${(Math.random()-0.5)*sl}px, ${(Math.random()-0.5)*sl}px) rotate(${(Math.random()-0.5)*beat*8}deg)`;
 
-      // gif-right (rimuru): izquierda derecha rápido
+      // gif-right (rimuru): izquierda derecha
       const lr = Math.sin(now / 55) * (8 + beat * 20);
       gifRight.style.transform = `translateX(${lr}px)`;
 
-      // gif-bottom (subaru): arriba abajo rápido
+      // gif-bottom (subaru): arriba abajo
       const ud = Math.sin(now / 55) * (8 + beat * 20);
       gifBottom.style.transform = `translateY(${ud}px)`;
     }
