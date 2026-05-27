@@ -14,18 +14,24 @@
       justify-content: center;
       overflow: hidden;
     }
+
+    /* === DESKTOP === */
     .layout {
       display: grid;
-      grid-template-columns: 120px 79vw 120px;
+      grid-template-columns: 120px 60vw 120px;
       grid-template-rows: 110px auto 110px;
       align-items: center;
       justify-items: center;
       width: 100vw;
       gap: 8px;
     }
+    .row-top    { grid-column: 1 / -1; grid-row: 1; }
+    .gif-left   { grid-column: 1; grid-row: 2; }
+    .video-wrap { grid-column: 2; grid-row: 2; width: 60vw; aspect-ratio: 16/9; }
+    .gif-right  { grid-column: 3; grid-row: 2; }
+    .row-bottom { grid-column: 1 / -1; grid-row: 3; }
 
     .row-top, .row-bottom {
-      grid-column: 1 / -1;
       width: 100%;
       height: 110px;
       position: relative;
@@ -34,9 +40,6 @@
       justify-content: center;
       overflow: hidden;
     }
-    .row-top    { grid-row: 1; }
-    .row-bottom { grid-row: 3; }
-
     .tile-row {
       position: absolute;
       top: 0; left: 0;
@@ -50,7 +53,6 @@
       object-fit: cover;
       flex-shrink: 0;
     }
-
     .gif-shake {
       position: relative;
       z-index: 2;
@@ -58,27 +60,77 @@
       height: 110px;
       object-fit: cover;
     }
-
     .gif-left, .gif-right {
       width: 110px;
       height: 110px;
       object-fit: cover;
     }
-    .gif-left  { grid-column: 1; grid-row: 2; }
-    .video-wrap { grid-column: 2; grid-row: 2; width: 79vw; aspect-ratio: 16/9; position: relative; }
-    .gif-right { grid-column: 3; grid-row: 2; }
 
     iframe {
       width: 100%; height: 100%;
       border: none; display: block;
     }
-
     canvas {
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
       pointer-events: none;
       z-index: 10;
+    }
+
+    /* === MOBILE === */
+    @media (max-width: 768px) {
+      html, body {
+        align-items: flex-start;
+        overflow-y: auto;
+      }
+      .layout {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100vw;
+        gap: 10px;
+        padding: 10px 0;
+      }
+      .row-top    { display: none; } /* ocultar fila superior en mobile */
+      .gif-left   { display: none; }
+      .gif-right  { display: none; }
+      .video-wrap {
+        width: 95vw !important;
+        aspect-ratio: 16/9;
+        order: 1;
+      }
+      .row-bottom {
+        order: 2;
+        width: 100vw;
+        height: 80px;
+        grid-column: unset;
+        grid-row: unset;
+      }
+      .tile-row img {
+        width: 80px;
+        height: 80px;
+      }
+      .gif-shake {
+        width: 80px;
+        height: 80px;
+      }
+      /* fila de gifs abajo en mobile: los 4 en una fila */
+      .mobile-gifs {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        order: 3;
+        width: 100vw;
+      }
+      .mobile-gifs img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+      }
+    }
+    @media (min-width: 769px) {
+      .mobile-gifs { display: none; }
     }
   </style>
 </head>
@@ -104,10 +156,17 @@
       <div class="tile-row" id="tile-bottom"></div>
       <img class="gif-shake" id="gif-bottom" src="subaru-natsuki-subaru.gif" alt="">
     </div>
+
+    <!-- solo mobile: 4 gifs en fila abajo -->
+    <div class="mobile-gifs">
+      <img id="m1" src="iltak-high-school-boy.gif" alt="">
+      <img id="m2" src="ghost-avenue-ghost-avenue-liln.gif" alt="">
+      <img id="m3" src="rimuru-tempest-rimuru.gif" alt="">
+      <img id="m4" src="subaru-natsuki-subaru.gif" alt="">
+    </div>
   </div>
 
   <script>
-    // Fill tile rows with img tags
     function fillTile(containerId, src) {
       const container = document.getElementById(containerId);
       const count = Math.ceil(window.innerWidth / 110) + 1;
@@ -127,6 +186,10 @@
     const gifLeft   = document.getElementById('gif-left');
     const gifRight  = document.getElementById('gif-right');
     const gifBottom = document.getElementById('gif-bottom');
+    const m1 = document.getElementById('m1');
+    const m2 = document.getElementById('m2');
+    const m3 = document.getElementById('m3');
+    const m4 = document.getElementById('m4');
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -137,10 +200,11 @@
 
     const BPM = 160;
     const beatInterval = 60000 / BPM;
-
     function getBeat(now) {
       return Math.max(0, 1 - (now % beatInterval) / beatInterval * 3.5);
     }
+
+    const isMobile = () => window.innerWidth <= 768;
 
     function draw(now) {
       requestAnimationFrame(draw);
@@ -156,14 +220,12 @@
       ctx.shadowColor = `hsla(${hue}, 100%, 65%, 1)`;
       ctx.shadowBlur = glow * 2;
       ctx.strokeRect(rect.left - glow/2, rect.top - glow/2, rect.width + glow, rect.height + glow);
-
       ctx.strokeStyle = `hsla(${(hue+180)%360}, 100%, 75%, ${beat * 0.5})`;
       ctx.lineWidth = 1 + beat * 4;
       ctx.shadowBlur = glow;
       ctx.strokeRect(rect.left + 4, rect.top + 4, rect.width - 8, rect.height - 8);
 
-      const shakeV = beat * 7;
-      wrap.style.transform = `translate(${(Math.random()-0.5)*shakeV}px, ${(Math.random()-0.5)*shakeV}px)`;
+      wrap.style.transform = `translate(${(Math.random()-0.5)*beat*7}px, ${(Math.random()-0.5)*beat*7}px)`;
 
       const st = beat * 12;
       const spinTop = beat > 0.3 ? (now % 500) / 500 * 360 : 0;
@@ -171,12 +233,15 @@
 
       const sl = beat * 12;
       gifLeft.style.transform = `translate(${(Math.random()-0.5)*sl}px, ${(Math.random()-0.5)*sl}px) rotate(${(Math.random()-0.5)*beat*8}deg)`;
+      gifRight.style.transform = `translateX(${Math.sin(now/55)*(8+beat*20)}px)`;
+      gifBottom.style.transform = `translateY(${Math.sin(now/55)*(8+beat*20)}px)`;
 
-      const lr = Math.sin(now / 55) * (8 + beat * 20);
-      gifRight.style.transform = `translateX(${lr}px)`;
-
-      const ud = Math.sin(now / 55) * (8 + beat * 20);
-      gifBottom.style.transform = `translateY(${ud}px)`;
+      if (isMobile()) {
+        m1.style.transform = `rotate(${spinTop}deg)`;
+        m2.style.transform = `translate(${(Math.random()-0.5)*sl}px,${(Math.random()-0.5)*sl}px)`;
+        m3.style.transform = `translateX(${Math.sin(now/55)*(4+beat*10)}px)`;
+        m4.style.transform = `translateY(${Math.sin(now/55)*(4+beat*10)}px)`;
+      }
     }
 
     requestAnimationFrame(draw);
