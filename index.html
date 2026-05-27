@@ -55,15 +55,15 @@
 <body>
   <canvas id="fx"></canvas>
   <div class="layout">
-    <img class="gif-top"    src="iltak-high-school-boy.gif" alt="">
-    <img class="gif-left"   src="ghost-avenue-ghost-avenue-liln.gif" alt="">
+    <img class="gif-top"    id="gif-top"    src="iltak-high-school-boy.gif" alt="">
+    <img class="gif-left"   id="gif-left"   src="ghost-avenue-ghost-avenue-liln.gif" alt="">
     <div class="video-wrap" id="wrap">
       <video id="vid" loop autoplay>
         <source src="ゴーストアベニュー(Ghost Avenue) - Eve Music Video.mp4" type="video/mp4">
       </video>
     </div>
-    <img class="gif-right"  src="rimuru-tempest-rimuru.gif" alt="">
-    <img class="gif-bottom" src="subaru-natsuki-subaru.gif" alt="">
+    <img class="gif-right"  id="gif-right"  src="rimuru-tempest-rimuru.gif" alt="">
+    <img class="gif-bottom" id="gif-bottom" src="subaru-natsuki-subaru.gif" alt="">
   </div>
 
   <script>
@@ -71,6 +71,11 @@
     const wrap = document.getElementById('wrap');
     const canvas = document.getElementById('fx');
     const ctx = canvas.getContext('2d');
+
+    const gifTop    = document.getElementById('gif-top');    // iltak - shake
+    const gifLeft   = document.getElementById('gif-left');   // ghost avenue - shake
+    const gifRight  = document.getElementById('gif-right');  // rimuru - left/right
+    const gifBottom = document.getElementById('gif-bottom'); // subaru - up/down
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -92,32 +97,52 @@
       draw();
     }, { once: true });
 
+    function avg(arr, start, end) {
+      const slice = arr.slice(start, end);
+      return slice.reduce((a, b) => a + b, 0) / slice.length / 255;
+    }
+
     function draw() {
       requestAnimationFrame(draw);
       if (!analyser) return;
 
       analyser.getByteFrequencyData(dataArray);
-      const avg = dataArray.slice(0, 10).reduce((a, b) => a + b, 0) / 10;
-      const intensity = avg / 255;
+
+      const bass   = avg(dataArray, 0, 8);    // bajo
+      const treble = avg(dataArray, 20, 40);  // altos
+      const mid    = avg(dataArray, 8, 20);   // medios
+
+      // --- Video: shake + glow border ---
+      const shake = bass * 8;
+      const dx = (Math.random() - 0.5) * shake;
+      const dy = (Math.random() - 0.5) * shake;
+      wrap.style.transform = `translate(${dx}px, ${dy}px)`;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Glow around video
       const rect = wrap.getBoundingClientRect();
-      const glow = intensity * 40;
-      const hue = 200 + intensity * 160;
-      ctx.shadowBlur = 0;
-      ctx.strokeStyle = `hsla(${hue}, 100%, 70%, ${0.3 + intensity * 0.7})`;
-      ctx.lineWidth = 2 + intensity * 8;
+      const glow = bass * 40;
+      const hue = 200 + bass * 160;
+      ctx.strokeStyle = `hsla(${hue}, 100%, 70%, ${0.3 + bass * 0.7})`;
+      ctx.lineWidth = 2 + bass * 8;
       ctx.shadowColor = `hsla(${hue}, 100%, 70%, 1)`;
       ctx.shadowBlur = glow * 2;
       ctx.strokeRect(rect.left - glow/2, rect.top - glow/2, rect.width + glow, rect.height + glow);
 
-      // Vibrate video element
-      const shake = intensity * 6;
-      const dx = (Math.random() - 0.5) * shake;
-      const dy = (Math.random() - 0.5) * shake;
-      wrap.style.transform = `translate(${dx}px, ${dy}px)`;
+      // --- gif-top (iltak): shake con el bajo ---
+      const shakeTop = bass * 10;
+      gifTop.style.transform = `translate(${(Math.random()-0.5)*shakeTop}px, ${(Math.random()-0.5)*shakeTop}px)`;
+
+      // --- gif-left (ghost avenue): shake con los altos ---
+      const shakeLeft = treble * 10;
+      gifLeft.style.transform = `translate(${(Math.random()-0.5)*shakeLeft}px, ${(Math.random()-0.5)*shakeLeft}px)`;
+
+      // --- gif-right (rimuru): izquierda a derecha con medios ---
+      const lrAmt = Math.sin(Date.now() / 80) * mid * 18;
+      gifRight.style.transform = `translateX(${lrAmt}px)`;
+
+      // --- gif-bottom (subaru): arriba abajo con bajo ---
+      const udAmt = Math.sin(Date.now() / 80) * bass * 18;
+      gifBottom.style.transform = `translateY(${udAmt}px)`;
     }
   </script>
 </body>
