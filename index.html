@@ -126,7 +126,8 @@
 
       // gif-top (iltak): shake caótico en beat
       const st = beat * 12;
-      gifTop.style.transform = `translate(${(Math.random()-0.5)*st}px, ${(Math.random()-0.5)*st}px) rotate(${(Math.random()-0.5)*beat*8}deg)`;
+      const spinTop = beat > 0.3 ? (now % 500) / 500 * 360 : 0;
+      gifTop.style.transform = `translate(${(Math.random()-0.5)*st}px, ${(Math.random()-0.5)*st}px) rotate(${spinTop}deg)`;
 
       // gif-left (ghost avenue): shake en beat
       const sl = beat * 12;
