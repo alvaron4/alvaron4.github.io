@@ -5,39 +5,57 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Loop Player</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
       background: #000;
-      width: 100vw;
-      height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    #player {
-      width: 100vw;
-      height: 100vh;
+    .layout {
+      display: grid;
+      grid-template-columns: 120px 40vw 120px;
+      grid-template-rows: 120px auto 120px;
+      align-items: center;
+      justify-items: center;
+      gap: 12px;
+    }
+    .gif-top    { grid-column: 2; grid-row: 1; }
+    .gif-left   { grid-column: 1; grid-row: 2; }
+    .video      { grid-column: 2; grid-row: 2; width: 40vw; aspect-ratio: 16/9; }
+    .gif-right  { grid-column: 3; grid-row: 2; }
+    .gif-bottom { grid-column: 2; grid-row: 3; }
+
+    .layout img {
+      width: 110px;
+      height: 110px;
+      object-fit: cover;
+      image-rendering: auto;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
     }
   </style>
 </head>
 <body>
-  <div id="player"></div>
-  <script>
-    var tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(tag);
-
-    function onYouTubeIframeAPIReady() {
-      new YT.Player('player', {
-        videoId: 'PysVvOp0jiU',
-        playerVars: { autoplay: 1, loop: 1, playlist: 'PysVvOp0jiU', rel: 0, modestbranding: 1, controls: 1 },
-        events: {
-          onStateChange: function(e) {
-            if (e.data === YT.PlayerState.ENDED) e.target.playVideo();
-          }
-        }
-      });
-    }
-  </script>
+  <div class="layout">
+    <img class="gif-top"    src="gif-top.gif"    alt="">
+    <img class="gif-left"   src="gif-left.gif"   alt="">
+    <div class="video">
+      <iframe
+        src="https://www.youtube.com/embed/PysVvOp0jiU?autoplay=1&loop=1&playlist=PysVvOp0jiU&rel=0&modestbranding=1&controls=1"
+        allow="autoplay; fullscreen"
+        allowfullscreen>
+      </iframe>
+    </div>
+    <img class="gif-right"  src="gif-right.gif"  alt="">
+    <img class="gif-bottom" src="gif-bottom.gif" alt="">
+  </div>
 </body>
 </html>
