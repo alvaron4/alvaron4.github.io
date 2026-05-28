@@ -14,12 +14,10 @@
       justify-content: center;
       overflow: hidden;
     }
-
-    /* === DESKTOP === */
     .layout {
       display: grid;
       grid-template-columns: 120px 60vw 120px;
-      grid-template-rows: 110px auto 110px;
+      grid-template-rows: 110px auto 44px 110px;
       align-items: center;
       justify-items: center;
       width: 100vw;
@@ -29,109 +27,61 @@
     .gif-left   { grid-column: 1; grid-row: 2; }
     .video-wrap { grid-column: 2; grid-row: 2; width: 60vw; aspect-ratio: 16/9; }
     .gif-right  { grid-column: 3; grid-row: 2; }
-    .row-bottom { grid-column: 1 / -1; grid-row: 3; }
+    .btn-row    { grid-column: 1 / -1; grid-row: 3; display: flex; align-items: center; gap: 16px; }
+    .row-bottom { grid-column: 1 / -1; grid-row: 4; }
 
     .row-top, .row-bottom {
-      width: 100%;
-      height: 110px;
+      width: 100%; height: 110px;
       position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       overflow: hidden;
     }
     .tile-row {
-      position: absolute;
-      top: 0; left: 0;
+      position: absolute; top: 0; left: 0;
       width: 100%; height: 100%;
-      display: flex;
-      align-items: center;
+      display: flex; align-items: center;
     }
-    .tile-row img {
-      width: 110px;
-      height: 110px;
-      object-fit: cover;
-      flex-shrink: 0;
+    .tile-row img { width: 110px; height: 110px; object-fit: cover; flex-shrink: 0; }
+    .gif-shake { position: relative; z-index: 2; width: 110px; height: 110px; object-fit: cover; }
+    .gif-left, .gif-right { width: 110px; height: 110px; object-fit: cover; }
+    iframe { width: 100%; height: 100%; border: none; display: block; }
+    canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+
+    /* nav buttons */
+    .nav-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      opacity: 0.7;
+      transition: opacity 0.15s, transform 0.1s;
+      color: #fff;
     }
-    .gif-shake {
-      position: relative;
-      z-index: 2;
-      width: 110px;
-      height: 110px;
-      object-fit: cover;
-    }
-    .gif-left, .gif-right {
-      width: 110px;
-      height: 110px;
-      object-fit: cover;
+    .nav-btn:hover { opacity: 1; transform: scale(1.15); }
+    .nav-btn svg { display: block; }
+    .track-indicator {
+      color: #555;
+      font-family: monospace;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      min-width: 50px;
+      text-align: center;
     }
 
-    iframe {
-      width: 100%; height: 100%;
-      border: none; display: block;
-    }
-    canvas {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    /* === MOBILE === */
     @media (max-width: 768px) {
-      html, body {
-        align-items: flex-start;
-        overflow-y: auto;
-      }
-      .layout {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100vw;
-        gap: 10px;
-        padding: 10px 0;
-      }
-      .row-top    { display: none; } /* ocultar fila superior en mobile */
-      .gif-left   { display: none; }
-      .gif-right  { display: none; }
-      .video-wrap {
-        width: 95vw !important;
-        aspect-ratio: 16/9;
-        order: 1;
-      }
-      .row-bottom {
-        order: 2;
-        width: 100vw;
-        height: 80px;
-        grid-column: unset;
-        grid-row: unset;
-      }
-      .tile-row img {
-        width: 80px;
-        height: 80px;
-      }
-      .gif-shake {
-        width: 80px;
-        height: 80px;
-      }
-      /* fila de gifs abajo en mobile: los 4 en una fila */
-      .mobile-gifs {
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-        order: 3;
-        width: 100vw;
-      }
-      .mobile-gifs img {
-        width: 80px;
-        height: 80px;
-        object-fit: cover;
-      }
+      html, body { align-items: flex-start; overflow-y: auto; }
+      .layout { display: flex; flex-direction: column; align-items: center; width: 100vw; gap: 10px; padding: 10px 0; }
+      .row-top { display: none; }
+      .gif-left, .gif-right { display: none; }
+      .video-wrap { width: 95vw !important; aspect-ratio: 16/9; order: 1; }
+      .btn-row { order: 2; }
+      .row-bottom { order: 3; width: 100vw; height: 80px; }
+      .tile-row img { width: 80px; height: 80px; }
+      .gif-shake { width: 80px; height: 80px; }
+      .mobile-gifs { display: flex; justify-content: center; gap: 8px; order: 4; width: 100vw; }
+      .mobile-gifs img { width: 80px; height: 80px; object-fit: cover; }
     }
-    @media (min-width: 769px) {
-      .mobile-gifs { display: none; }
-    }
+    @media (min-width: 769px) { .mobile-gifs { display: none; } }
   </style>
 </head>
 <body>
@@ -144,20 +94,31 @@
 
     <img class="gif-left"  id="gif-left"  src="ghost-avenue-ghost-avenue-liln.gif" alt="">
     <div class="video-wrap" id="wrap">
-      <iframe
-        src="https://www.youtube.com/embed/PysVvOp0jiU?autoplay=1&loop=1&playlist=PysVvOp0jiU&rel=0&modestbranding=1&controls=1"
-        allow="autoplay; fullscreen"
-        allowfullscreen>
-      </iframe>
+      <iframe id="yt" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
     </div>
     <img class="gif-right" id="gif-right" src="rimuru-tempest-rimuru.gif" alt="">
+
+    <div class="btn-row">
+      <button class="nav-btn" onclick="prev()" title="Anterior">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+          <polygon points="19,5 9,12 19,19" />
+          <rect x="5" y="5" width="3" height="14" />
+        </svg>
+      </button>
+      <span class="track-indicator" id="indicator">1 / 2</span>
+      <button class="nav-btn" onclick="next()" title="Siguiente">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+          <polygon points="5,5 15,12 5,19" />
+          <rect x="16" y="5" width="3" height="14" />
+        </svg>
+      </button>
+    </div>
 
     <div class="row-bottom">
       <div class="tile-row" id="tile-bottom"></div>
       <img class="gif-shake" id="gif-bottom" src="subaru-natsuki-subaru.gif" alt="">
     </div>
 
-    <!-- solo mobile: 4 gifs en fila abajo -->
     <div class="mobile-gifs">
       <img id="m1" src="iltak-high-school-boy.gif" alt="">
       <img id="m2" src="ghost-avenue-ghost-avenue-liln.gif" alt="">
@@ -167,6 +128,26 @@
   </div>
 
   <script>
+    // ── AGREGAR VIDEOS AQUI ──
+    const videos = [
+      'PysVvOp0jiU',
+      'LmZD-TU96q4',
+    ];
+    // ────────────────────────
+
+    let current = 0;
+
+    function loadVideo(idx) {
+      const id = videos[idx];
+      document.getElementById('yt').src = `https://www.youtube.com/embed/${id}?autoplay=1&loop=1&playlist=${id}&rel=0&modestbranding=1&controls=1`;
+      document.getElementById('indicator').textContent = `${idx+1} / ${videos.length}`;
+    }
+
+    function next() { current = (current + 1) % videos.length; loadVideo(current); }
+    function prev() { current = (current - 1 + videos.length) % videos.length; loadVideo(current); }
+
+    loadVideo(0);
+
     function fillTile(containerId, src) {
       const container = document.getElementById(containerId);
       const count = Math.ceil(window.innerWidth / 110) + 1;
@@ -182,68 +163,44 @@
     const canvas = document.getElementById('fx');
     const ctx = canvas.getContext('2d');
     const wrap = document.getElementById('wrap');
-    const gifTop    = document.getElementById('gif-top');
-    const gifLeft   = document.getElementById('gif-left');
-    const gifRight  = document.getElementById('gif-right');
-    const gifBottom = document.getElementById('gif-bottom');
-    const m1 = document.getElementById('m1');
-    const m2 = document.getElementById('m2');
-    const m3 = document.getElementById('m3');
-    const m4 = document.getElementById('m4');
+    const gifTop=document.getElementById('gif-top'), gifLeft=document.getElementById('gif-left');
+    const gifRight=document.getElementById('gif-right'), gifBottom=document.getElementById('gif-bottom');
+    const m1=document.getElementById('m1'),m2=document.getElementById('m2');
+    const m3=document.getElementById('m3'),m4=document.getElementById('m4');
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
+    canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+    window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
 
-    const BPM = 160;
-    const beatInterval = 60000 / BPM;
-    function getBeat(now) {
-      return Math.max(0, 1 - (now % beatInterval) / beatInterval * 3.5);
-    }
+    const beatInterval = 60000/160;
+    function getBeat(now){return Math.max(0,1-(now%beatInterval)/beatInterval*3.5);}
+    const isMobile=()=>window.innerWidth<=768;
 
-    const isMobile = () => window.innerWidth <= 768;
-
-    function draw(now) {
+    function draw(now){
       requestAnimationFrame(draw);
-      const beat = getBeat(now);
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const rect = wrap.getBoundingClientRect();
-      const glow = beat * 35;
-      const hue = (now / 8) % 360;
-      ctx.strokeStyle = `hsla(${hue}, 100%, 65%, ${0.4 + beat * 0.6})`;
-      ctx.lineWidth = 2 + beat * 10;
-      ctx.shadowColor = `hsla(${hue}, 100%, 65%, 1)`;
-      ctx.shadowBlur = glow * 2;
-      ctx.strokeRect(rect.left - glow/2, rect.top - glow/2, rect.width + glow, rect.height + glow);
-      ctx.strokeStyle = `hsla(${(hue+180)%360}, 100%, 75%, ${beat * 0.5})`;
-      ctx.lineWidth = 1 + beat * 4;
-      ctx.shadowBlur = glow;
-      ctx.strokeRect(rect.left + 4, rect.top + 4, rect.width - 8, rect.height - 8);
-
-      wrap.style.transform = `translate(${(Math.random()-0.5)*beat*7}px, ${(Math.random()-0.5)*beat*7}px)`;
-
-      const st = beat * 12;
-      const spinTop = beat > 0.3 ? (now % 500) / 500 * 360 : 0;
-      gifTop.style.transform = `translate(${(Math.random()-0.5)*st}px, ${(Math.random()-0.5)*st}px) rotate(${spinTop}deg)`;
-
-      const sl = beat * 12;
-      gifLeft.style.transform = `translate(${(Math.random()-0.5)*sl}px, ${(Math.random()-0.5)*sl}px) rotate(${(Math.random()-0.5)*beat*8}deg)`;
-      gifRight.style.transform = `translateX(${Math.sin(now/55)*(8+beat*20)}px)`;
-      gifBottom.style.transform = `translateY(${Math.sin(now/55)*(8+beat*20)}px)`;
-
-      if (isMobile()) {
-        m1.style.transform = `rotate(${spinTop}deg)`;
-        m2.style.transform = `translate(${(Math.random()-0.5)*sl}px,${(Math.random()-0.5)*sl}px)`;
-        m3.style.transform = `translateX(${Math.sin(now/55)*(4+beat*10)}px)`;
-        m4.style.transform = `translateY(${Math.sin(now/55)*(4+beat*10)}px)`;
+      const beat=getBeat(now);
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const rect=wrap.getBoundingClientRect();
+      const glow=beat*35, hue=(now/8)%360;
+      ctx.strokeStyle=`hsla(${hue},100%,65%,${0.4+beat*0.6})`;
+      ctx.lineWidth=2+beat*10; ctx.shadowColor=`hsla(${hue},100%,65%,1)`; ctx.shadowBlur=glow*2;
+      ctx.strokeRect(rect.left-glow/2,rect.top-glow/2,rect.width+glow,rect.height+glow);
+      ctx.strokeStyle=`hsla(${(hue+180)%360},100%,75%,${beat*0.5})`;
+      ctx.lineWidth=1+beat*4; ctx.shadowBlur=glow;
+      ctx.strokeRect(rect.left+4,rect.top+4,rect.width-8,rect.height-8);
+      wrap.style.transform=`translate(${(Math.random()-.5)*beat*7}px,${(Math.random()-.5)*beat*7}px)`;
+      const st=beat*12, spinTop=beat>0.3?(now%500)/500*360:0;
+      gifTop.style.transform=`translate(${(Math.random()-.5)*st}px,${(Math.random()-.5)*st}px) rotate(${spinTop}deg)`;
+      const sl=beat*12;
+      gifLeft.style.transform=`translate(${(Math.random()-.5)*sl}px,${(Math.random()-.5)*sl}px) rotate(${(Math.random()-.5)*beat*8}deg)`;
+      gifRight.style.transform=`translateX(${Math.sin(now/55)*(8+beat*20)}px)`;
+      gifBottom.style.transform=`translateY(${Math.sin(now/55)*(8+beat*20)}px)`;
+      if(isMobile()){
+        m1.style.transform=`rotate(${spinTop}deg)`;
+        m2.style.transform=`translate(${(Math.random()-.5)*sl}px,${(Math.random()-.5)*sl}px)`;
+        m3.style.transform=`translateX(${Math.sin(now/55)*(4+beat*10)}px)`;
+        m4.style.transform=`translateY(${Math.sin(now/55)*(4+beat*10)}px)`;
       }
     }
-
     requestAnimationFrame(draw);
   </script>
 </body>
